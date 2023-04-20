@@ -60,7 +60,7 @@ class MainWindow:
         self.uic.setupUi(self.main_win)
         self.uic.pushButton.clicked.connect(self.click_close)
         self.uic.capture.clicked.connect(self.upload_capture)
-       # self.uic.Video.clicked.connect(self.upload_video)
+        self.uic.Video.clicked.connect(self.upload_video)
         self.uic.camera.clicked.connect(self.upload_camera)
 
     def show(self):
@@ -91,36 +91,43 @@ class MainWindow:
         self.uic.result.setText(sign)
 
     def upload_camera(self):
-        model = load_model('model.h5')
-        file = 'stop.mp4'
         self.cap = cv2.VideoCapture(0)
         while True:
-            # Lấy hình ảnh từ webcam
             OK, self.frame = self.cap.read()
-            # Nếu nhấn phím 'q' thì thoát khỏi vòng lặp
-            img = numpy.asarray(self.frame)
-            img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-            img = cv2.resize(img, (32, 32), interpolation=cv2.INTER_AREA)
-            mp = QtGui.QImage(img, img.shape[1], img.shape[0], img.strides[0], QtGui.QImage.Format_Grayscale8)
-            #xử lí trên màn hình chính
-            img1 = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-            img1 = cv2.resize(img1, (778, 510), interpolation=cv2.INTER_AREA)
-            mp1 = QtGui.QImage(img1, img1.shape[1], img1.shape[0], img1.strides[0], QtGui.QImage.Format_RGB888)
-            self.uic.screen.setPixmap(QtGui.QPixmap.fromImage(mp1))
-
-
-            mp = img / 255.0
-            mp = mp.reshape(1, 32, 32, 1)
-            predictions = model.predict(mp)
-            pred = numpy.argmax(predictions, axis=1)
-            prob = numpy.amax(pred)
-            prob1 = numpy.amax(predictions)
-            sign = classes[prob + 1]
-            if prob1 > 0.7:
-                print(prob1)
-                self.uic.result.setText(sign)
+            self.process()
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+
+    def upload_video(self):
+        path_file, _ = QFileDialog.getOpenFileName(None, 'Chọn tệp ảnh', '', 'Images (*.mp4)')
+        self.cap = cv2.VideoCapture(path_file)
+        while True:
+            OK, self.frame = self.cap.read()
+            self.process()
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+    def process(self):
+        model = load_model('model.h5')
+        img = numpy.asarray(self.frame)
+        img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+        img = cv2.resize(img, (32, 32), interpolation=cv2.INTER_AREA)
+        mp = QtGui.QImage(img, img.shape[1], img.shape[0], img.strides[0], QtGui.QImage.Format_Grayscale8)
+        # xử lí trên màn hình chính
+        img1 = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
+        img1 = cv2.resize(img1, (778, 510), interpolation=cv2.INTER_AREA)
+        mp1 = QtGui.QImage(img1, img1.shape[1], img1.shape[0], img1.strides[0], QtGui.QImage.Format_RGB888)
+        self.uic.screen.setPixmap(QtGui.QPixmap.fromImage(mp1))
+        mp = img / 255.0
+        mp = mp.reshape(1, 32, 32, 1)
+        predictions = model.predict(mp)
+        pred = numpy.argmax(predictions, axis=1)
+        prob = numpy.amax(pred)
+        prob1 = numpy.amax(predictions)
+        sign = classes[prob + 1]
+        if prob1 > 0.7:
+                print(prob1)
+                self.uic.result.setText(sign)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
