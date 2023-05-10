@@ -8,50 +8,51 @@ from keras.models import load_model
 from layout import Ui_Dialog
 from PyQt5.QtGui import QPixmap
 
+
     # Các nhãn của các biển đã train
 classes = {1: 'Tốc độ tối đa (20km/h)',
-               2: 'Tốc độ tối đa (30km/h)',
-               3: 'Tốc độ tối đa (50km/h)',
-               4: 'Tốc độ tối đa (60km/h)',
-               5: 'Tốc độ tối đa (70km/h)',
-               6: 'Tốc độ tối đa (80km/h)',
-               7: 'End of speed limit (80km/h)',
-               8: 'Tốc độ tối đa (100km/h)',
-               9: 'Tốc độ tối đa (120km/h)',
-               10: 'Không được vượt',
-               11: 'No passing veh over 3.5 tons',
-               12: 'Right-of-way at intersection',
-               13: 'Đường ưu tiên',
-               14: 'Nhường đường',
-               15: 'Dừng lại',
-               16: 'No vehicles',
-               17: 'Veh > 3.5 tons prohibited',
-               18: 'Không vào   ',
-               19: 'Cẩn thận',
-               20: 'Chỗ ngoặt nguy hiểm vòng bên trái',
-               21: 'Chỗ ngoặt nguy hiểm vòng bên phải',
-               22: 'Double curve',
-               23: 'Đường gập ghềnh',
-               24: 'Đường trơn trượt',
-               25: 'Road narrows on the right',
-               26: 'Đường đang thi công',
-               27: 'Biển báo giao thông',
-               28: 'Pedestrians',
-               29: 'Trẻ em qua đường',
-               30: 'Bicycles crossing',
-               31: 'Beware of ice/snow',
-               32: 'Wild animals crossing',
-               33: 'End speed + passing limits',
-               34: 'Rẽ phải phía trước',
-               35: 'Rẽ trái phía trước',
-               36: 'Đi thẳng',
-               37: 'Go straight or right',
-               38: 'Go straight or left',
-               39: 'Keep right',
-               40: 'Keep left',
-               41: 'Roundabout mandatory',
-               42: 'End of no passing',
-               43: 'End no passing veh > 3.5 tons'}
+                2: 'Tốc độ tối đa (30km/h)',
+                3: 'Tốc độ tối đa (50km/h)',
+                4: 'Tốc độ tối đa (60km/h)',
+                5: 'Tốc độ tối đa (70km/h)',
+                6: 'Tốc độ tối đa (80km/h)',
+                7: 'Hết giới hạn tốc độ (80km/h)',
+                8: 'Tốc độ tối đa (100km/h)',
+                9: 'Tốc độ tối đa (120km/h)',
+                10: 'Không được',
+                11: 'Cấm vượt xe trên 3,5 tấn',
+                12: 'Quyền ưu tiên tại giao lộ',
+                13: 'Đường ưu tiên',
+                14: 'Nhường đường',
+                15: 'Dừng lại',
+                16: 'Cấm xe cộ',
+                17: 'Veh > 3,5 tấn bị cấm',
+                18: 'Không vào ',
+                19: 'Cẩn Thận',
+                20: 'Chỗ trợ nguy hiểm vòng bên trái',
+                21: 'Chỗ trợ nguy hiểm vòng bên phải',
+                22: 'Đường cong đôi',
+                23: 'Đường Gặp Gỡ',
+                24: 'Đường trơn trượt',
+                25: 'Đường hẹp bên phải',
+                26: 'Đường đang thi công',
+                27: 'Biển báo giao thông',
+                28: 'Người đi bộ',
+                29: 'Trẻ em qua đường',
+                30: 'Xe đạp qua đường',
+                31: 'Coi chừng băng/tuyết',
+                32: 'Động vật băng qua',
+                33: 'Hết tốc độ + vượt qua giới hạn',
+                34: 'Rẽ phải phía trước',
+                35: 'Rẽ trái phía trước',
+                36: 'Đi thẳng',
+                37: 'Đi thẳng hoặc phải',
+                38: 'Đi thẳng hoặc trái',
+                39: 'Giữ bên phải',
+                40: 'Đi bên trái',
+                41: 'Bùng binh bắt buộc',
+                42: 'Kết thúc không qua',
+                43: 'Cấm xe vượt > 3,5 tấn'}
 
 class MainWindow:
     def __init__(self):
@@ -88,46 +89,79 @@ class MainWindow:
         prob1 = numpy.amax(predictions) #tìm giá trị xác xuất cao nhất
         sign = classes[prob + 1]
         print(prob1)
+        # Khởi tạo một QFont với font
+        font = QtGui.QFont("MS Shell Dlg 2", 12)
+        # Thiết lập font chữ cho QLabel
+        self.uic.result.setFont(font)
         self.uic.result.setText(sign)
 
     def upload_camera(self):
+        model = load_model('model.h5')
         self.cap = cv2.VideoCapture(0)
         while True:
             OK, self.frame = self.cap.read()
-            self.process()
+            img = numpy.asarray(self.frame)
+            img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+            img = cv2.resize(img, (32, 32), interpolation=cv2.INTER_AREA)
+            mp = QtGui.QImage(img, img.shape[1], img.shape[0], img.strides[0], QtGui.QImage.Format_Grayscale8)
+
+            # xử lí trên màn hình chính
+            img1 = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
+            img1 = cv2.resize(img1, (778, 510), interpolation=cv2.INTER_AREA)
+            mp1 = QtGui.QImage(img1, img1.shape[1], img1.shape[0], img1.strides[0], QtGui.QImage.Format_RGB888)
+            self.uic.screen.setPixmap(QtGui.QPixmap.fromImage(mp1))
+
+            mp = img / 255.0
+            mp = mp.reshape(1, 32, 32, 1)
+            predictions = model.predict(mp)
+            pred = numpy.argmax(predictions, axis=1)
+            prob = numpy.amax(pred)
+            prob1 = numpy.amax(predictions)
+            sign = classes[prob + 1]
+            if prob1 > 0.9:
+                print(prob1)
+                # Khởi tạo một QFont với font
+                font = QtGui.QFont("MS Shell Dlg 2", 12)
+                # Thiết lập font chữ cho QLabel
+                self.uic.result.setFont(font)
+                self.uic.result.setText(sign)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
     def upload_video(self):
+        model = load_model('model.h5')
         path_file, _ = QFileDialog.getOpenFileName(None, 'Chọn tệp ảnh', '', 'Images (*.mp4)')
         self.cap = cv2.VideoCapture(path_file)
         while True:
             OK, self.frame = self.cap.read()
-            self.process()
+            model = load_model('model.h5')
+            img = numpy.asarray(self.frame)
+            img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+            img = cv2.resize(img, (32, 32), interpolation=cv2.INTER_AREA)
+            mp = QtGui.QImage(img, img.shape[1], img.shape[0], img.strides[0], QtGui.QImage.Format_Grayscale8)
+
+            # xử lí trên màn hình chính
+            img1 = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
+            img1 = cv2.resize(img1, (778, 510), interpolation=cv2.INTER_AREA)
+            mp1 = QtGui.QImage(img1, img1.shape[1], img1.shape[0], img1.strides[0], QtGui.QImage.Format_RGB888)
+            self.uic.screen.setPixmap(QtGui.QPixmap.fromImage(mp1))
+
+            mp = img / 255.0
+            mp = mp.reshape(1, 32, 32, 1)
+            predictions = model.predict(mp)
+            pred = numpy.argmax(predictions, axis=1)
+            prob = numpy.amax(pred)
+            prob1 = numpy.amax(predictions)
+            sign = classes[prob + 1]
+            if prob1 > 0.9:
+                print(prob1)
+                # Khởi tạo một QFont với font
+                font = QtGui.QFont("MS Shell Dlg 2", 12)
+                # Thiết lập font chữ cho QLabel
+                self.uic.result.setFont(font)
+                self.uic.result.setText(sign)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
-    def process(self):
-        model = load_model('model.h5')
-        img = numpy.asarray(self.frame)
-        img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-        img = cv2.resize(img, (32, 32), interpolation=cv2.INTER_AREA)
-        mp = QtGui.QImage(img, img.shape[1], img.shape[0], img.strides[0], QtGui.QImage.Format_Grayscale8)
-        # xử lí trên màn hình chính
-        img1 = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-        img1 = cv2.resize(img1, (778, 510), interpolation=cv2.INTER_AREA)
-        mp1 = QtGui.QImage(img1, img1.shape[1], img1.shape[0], img1.strides[0], QtGui.QImage.Format_RGB888)
-        self.uic.screen.setPixmap(QtGui.QPixmap.fromImage(mp1))
-        mp = img / 255.0
-        mp = mp.reshape(1, 32, 32, 1)
-        predictions = model.predict(mp)
-        pred = numpy.argmax(predictions, axis=1)
-        prob = numpy.amax(pred)
-        prob1 = numpy.amax(predictions)
-        sign = classes[prob + 1]
-        if prob1 > 0.7:
-                print(prob1)
-                self.uic.result.setText(sign)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
