@@ -82,10 +82,12 @@ class MainWindow:
         image = Image.open(path_file)
         image = image.resize((30, 30))
         image = numpy.expand_dims(image, axis=0)
-        image = numpy.array(image)
+        image = numpy.array(image) #Ảnh sau đó được chuyển thành mảng numpy bằng cách sử dụng hàm numpy.array
+        # mở rộng chiều của mảng bằng cách sử dụng numpy.expand_dims để phù hợp với đầu vào yêu cầu của mô hình.
+
         predictions = model.predict(image) # tạo ra 1 tập các dự đoán của image
-        pred = numpy.argmax(predictions, axis=1)  # tìm chỉ số của lớp có xác suất dự đoán cao nhất trên mỗi hàng của ma trận predictions.
-        prob = numpy.amax(pred) #tìm chỉ giá trị lớn nhất trong mảng các chỉ số này
+        pred = numpy.argmax(predictions, axis=1)  #kiêểu dữ kiệu mảng,  Hàm numpy.argmax trả về chỉ số của phần tử lớn nhất trong mảng predictions.
+        prob = numpy.amax(pred) #để lấy chỉ số của loại biển báo trong danh sách các lớp phân loại được lưu trữ trong biến classes.
         prob1 = numpy.amax(predictions) #tìm giá trị xác xuất cao nhất
         sign = classes[prob + 1]
         print(prob1)
